@@ -241,6 +241,13 @@ private:
     */
    void copy(const Chain & other);
 
+    //when given a position of a node, returns a pointer to that node while fixing the list
+    //by connecting the nodes on either side of the one we are extracting
+   Node * extractNode(int pos);
+
+   //inserts newNode into certain spot in chain, ie if pos = 2, will be at the 2nd spot in the chain
+    void insertNode(Node * newNode, int pos);
+
    /* =================== end of private PA1 functions ============== */
 };
 
