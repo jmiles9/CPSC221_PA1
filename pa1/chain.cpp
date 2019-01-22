@@ -3,12 +3,21 @@
 
 // PA1 functions
 
+//length = 0 corresonds to a chain with just a sentinel
+
 /**
  * Destroys the current Chain. This function should ensure that
  * memory does not leak on destruction of a chain.
  */
 Chain::~Chain(){
   /* your code here */
+  //We need to delete each node;
+  
+  clear();
+  delete head_;
+  delete this; //not sure abouot this line either
+  //maybe we need to delete more stuff too?? the chain itself??
+
 }
 
 /**
@@ -18,7 +27,13 @@ Chain::~Chain(){
  * @param ndata The data to be inserted.
  */
 void Chain::insertBack(const Block & ndata){
-  /* your code here */
+  Node* insertNode = new Node(ndata);
+  Node* oldLast = head_->next;
+  head_->next = insertNode;
+  insertNode->prev = head_;
+  insertNode->next = oldLast;
+  oldLast->prev = insertNode;
+  length_ ++;
 }
 
 /**
@@ -33,8 +48,27 @@ void Chain::insertBack(const Block & ndata){
  * You may assume that: 1 <= startPos <= length - len + 1,
  * 0 <= dist <= length, and 0 <= len <= length. 
  */
+  //BP basically just moves chunk of len nodes back in the chain by dist
 void Chain::moveBack(int startPos, int len, int dist){
   /* your code here */
+  //should use walk fxn
+  Node* start = walk(head_, startPos); //first node in the subchain;
+  Node* prevBound = start->prev; //the left side of the gap we produce
+  Node* end = walk(start, len-1); //last node in subchain
+  Node* nextBound = end->next; //the right side of the gap we produce
+
+  if(startPos + len - 1 + dist > length_){
+    //if subchain would be moved around end of list then change dist to just move it to end
+    dist = length_ - startPos - len + 1;
+  }
+
+  //take care of moving the chunk
+  start->prev = walk(start, len+dist-1);
+  end->next = walk(end, dist+len-1);
+
+  //now need to take care of holes we left
+  prevBound->next = nextBound;
+  nextBound->prev = prevBound;
 }
 
 /**
@@ -45,6 +79,20 @@ void Chain::moveBack(int startPos, int len, int dist){
  */
 void Chain::roll(int k){
   /* your code here */
+  //head should still be first
+  //moves k nodes from end of chain to start
+  Node* startRoll = walk(head_, length_ - k + 1);
+  Node* prevBound = startRoll->prev;
+  Node* endRoll = walk(startRoll, k-1); //we don't need to define nextBound cuz is always head_
+  Node* newEndNode = walk(head_, length_ - k);
+
+  startRoll->prev = head_;
+  head_->next = startRoll;
+  endRoll->next = prevBound;
+  prevBound->prev = endRoll;
+  newEndNode->next = head_;
+  head_->prev = newEndNode;
+
 }
 
 /**
@@ -55,7 +103,31 @@ void Chain::roll(int k){
  * The positions are 1-based.
  */
 void Chain::reverseSub(int pos1, int pos2){
-  /* your code here */
+  Node * start;
+  Node * end;
+  Node * prevBound;
+  Node * nextBound;
+
+  int swaps = (pos2-pos1)/2; //this will give us floor of value = number of things we have to swap
+  int i=0;
+
+  while(swaps>0){
+    //should do 4 pointer reassignments
+    start = walk(head_, pos1+i);
+    end = walk(head_, pos2-i);
+    prevBound = start->prev;
+    nextBound = end->next;
+    //every loop all we want to do is swap start and end and fix pointer situation
+
+    start->next = nextBound;
+    nextBound->prev = start;
+    end->prev = prevBound;
+    prevBound->next = end;
+
+    swaps--;
+    i++;
+  }
+//this needs to be tested a bit lol idk how good it is, makes sense though
 }
 
 /*
@@ -73,7 +145,33 @@ void Chain::reverseSub(int pos1, int pos2){
 * cout << "Block sizes differ." << endl;
 */
 void Chain::weave(Chain & other) { // leaves other empty.
-  /* your code here */
+  //weave together until one chain is empty, then just leave other ones
+
+  Node * inserter;
+
+  int i = 1;
+
+  if(length_ >= other.length_){
+    while(other.length_ > 0){
+      inserter = other.extractNode(1);
+      insertNode(inserter, 2*i);
+      i++;
+    }
+  }else{
+    //other chain is longer, we will have just add the rest of it to the end
+
+    //do all weaving before main chain is exhausted
+    while(i<=length_-1){
+      inserter = other.extractNode(1);
+      insertNode(inserter, 2*i);
+    }
+
+    while(other.length_>0){
+      //this is after we have populated all spaces in main chain, now just add end of other
+      inserter = other.extractNode(1);
+      insertNode(inserter, length_+1);
+    }
+  }
 }
 
 
@@ -83,7 +181,16 @@ void Chain::weave(Chain & other) { // leaves other empty.
  * to zero.  After clear() the chain represents an empty chain.
  */
 void Chain::clear() {
-  /* your code here */
+
+  while(empty() == false){
+    Node* temp = new Node();
+    temp = head_->next;
+    head_->next = temp->next;
+    head_->next->prev = head_;
+    delete temp;
+    length_--; //we basically just delete node by node until all we have is the sentinel here
+  }
+
 }
 
 /**
@@ -94,5 +201,31 @@ void Chain::clear() {
  * constructor and the assignment operator for Chains.
  */
 void Chain::copy(Chain const& other) {
-  /* your code here */
+  //make current chain (this) into a copy of other
+
+  clear(); //clears this chain
+ 
+  for(int i = 1; i<=other.length_; i++){
+    insertBack(walk(other.head_, i)->data);
+  }
+
+}
+
+Chain::Node * Chain::extractNode(int pos){
+  Node * extracted = walk(head_, pos);
+  head_->next = extracted->next;
+  extracted->next->prev = head_;
+  length_ --;
+  return extracted;
+}
+
+//wont allow insertion at end of a chain (ie if pos>length wont work)
+void Chain::insertNode(Chain::Node * newNode, int pos){
+  Node * prevBound = walk(head_, pos-1);
+  Node * nextBound = walk(head_, pos);
+  newNode->next = nextBound;
+  nextBound->prev = newNode;
+  newNode->prev = prevBound;
+  prevBound->next = newNode;
+  length_ ++;
 }
