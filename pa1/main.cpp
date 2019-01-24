@@ -19,14 +19,20 @@ int main() {
 
    //basic block functionality
    Block b;
+   cout << "Block made" << endl;
    b.build(png1,20,150); // grab a strip of png1 starting at 20, and 150p wide.
+   cout << "built" << endl;
    b.greyscale(); // change the block to be grey
+   cout << "grey" << endl;
    b.render(result1,20); //put the ubcified strip onto a new image.
+   cout << "render" << endl;
    result1.writeToFile("images/out-blocktest.png");
 
 
 PNG expected1; expected1.readFromFile("images/given-blocktest.png");
 if (expected1 == result1) cout<< "block passed" << endl;
+
+cout << "after block tests" << endl;
 
 //chain
    Chain c(png1,12); // img, number of strips.
