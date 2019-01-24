@@ -18,9 +18,13 @@ public:
    int width() const ;
    int height() const ;
 
+   Block();
+
 private:
 
-   vector< vector < HSLAPixel > > data;
+   vector< vector<HSLAPixel *> > data;
+   int w;
+   int h;
 
 };
 #endif
