@@ -22,7 +22,7 @@ public:
 
 private:
 
-   vector< vector<HSLAPixel *> > data;
+   vector< vector<HSLAPixel> > data;
    int w;
    int h;
 
