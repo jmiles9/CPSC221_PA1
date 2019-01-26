@@ -19,28 +19,26 @@ int main() {
 
    //basic block functionality
    Block b;
-   cout << "Block made" << endl;
    b.build(png1,20,150); // grab a strip of png1 starting at 20, and 150p wide.
-   cout << "built" << endl;
    b.greyscale(); // change the block to be grey
-   cout << "grey" << endl;
    b.render(result1,20); //put the ubcified strip onto a new image.
-   cout << "render" << endl;
    result1.writeToFile("images/out-blocktest.png");
 
 
 PNG expected1; expected1.readFromFile("images/given-blocktest.png");
 if (expected1 == result1) cout<< "block passed" << endl;
 
-cout << "after block tests" << endl;
-
 //chain
    Chain c(png1,12); // img, number of strips.
-
+   cout << "chain" << endl;
    c.moveBack(3,5,4);
 
+   cout << "moveback" << endl;
+
    PNG result2 = c.render(12);
+   cout << "render" << endl;
    PNG result2r = c.renderBack(12);
+   cout << "render back" << endl;
    result2.writeToFile("images/out-moveBack.png");
    result2r.writeToFile("images/out-moveBackReverse.png");
 
