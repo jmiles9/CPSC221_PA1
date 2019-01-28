@@ -139,33 +139,61 @@ void Chain::reverseSub(int pos1, int pos2){ //this works
 * cout << "Block sizes differ." << endl;
 */
 void Chain::weave(Chain & other) { // leaves other empty.
-  //weave together until one chain is empty, then just leave other ones
-
-  Node * inserter;
-
-  int i = 1;
-
-  if(length_ >= other.length_){
-    while(other.length_ > 0){
-      inserter = other.extractNode(1);
-      insertNode(inserter, 2*i);
-      i++;
-    }
-  }else{
-    //other chain is longer, we will have just add the rest of it to the end
-
-    //do all weaving before main chain is exhausted
-    while(i<=length_-1){
-      inserter = other.extractNode(1);
-      insertNode(inserter, 2*i);
-    }
-
-    while(other.length_>0){
-      //this is after we have populated all spaces in main chain, now just add end of other
-      inserter = other.extractNode(1);
-      insertNode(inserter, length_+1);
-    }
+  //checking block width
+  if(width_ != other.width_ || height_ != other.height_){
+    cout << "Block sizes differ." << endl;
+    return;
   }
+
+  //if other chain is empty, return original chain
+  if(other.length_ == 0) return;
+  //if current chain is empty, connect other to head
+  if(length_ == 0){
+    head_->prev = other.head_->prev;
+    head_->next = other.head_->next;
+    other.head_->next = other.head_;
+    other.head_->prev = other.head_;
+    length_ = other.length_;
+    other.length_ = 0;
+    return;
+  }
+
+  Node * curr1 = head_->next->next;
+  Node * curr2 = other.head_->next;
+  bool first = true;
+  while(curr1 != head_ && curr2 != other.head_){
+    if(first){
+      curr1->prev->next = curr2;
+      curr2->prev = curr1->prev;
+      curr2 = curr2->next;
+    }else{
+      curr2->prev->next = curr1;
+      curr1->prev = curr2->prev;
+      curr1 = curr1->next;
+    }
+    first = !first;
+  }
+
+  if(curr1 == head_){
+    curr1->prev->next = curr2;
+    curr2->prev = curr1->prev;
+
+    curr2 = other.head_->prev;
+
+    head_->prev = curr2;
+    curr2 ->next = head_;
+  }
+
+  if(curr2 == other.head_){
+    curr2->prev->next = curr1;
+    curr1->prev = curr2->prev;
+  }
+
+  other.head_->next = other.head_;
+  other.head_->prev = other.head_;
+
+  length_ += other.length_;
+  other.length_ = 0;
 }
 
 
@@ -175,17 +203,15 @@ void Chain::weave(Chain & other) { // leaves other empty.
  * to zero.  After clear() the chain represents an empty chain.
  */
 void Chain::clear() {
-
   while(empty() == false){
-    Node* temp = new Node();
-    temp = head_->next;
-    head_->next = temp->next;
-    head_->next->prev = head_;
-    delete temp;
-    length_--; //we basically just delete node by node until all we have is the sentinel here
+    Node* curr = head_->prev;
+    curr->prev->next = head_;
+    head_->prev = curr->prev;
+    delete curr;
+    length_ --;
   }
-
 }
+
 
 /**
  * Makes the current object into a copy of the parameter:
@@ -196,30 +222,16 @@ void Chain::clear() {
  */
 void Chain::copy(Chain const& other) {
   //make current chain (this) into a copy of other
+  cout << "in copy" << endl;
 
   clear(); //clears this chain
+  height_ = other.height_;
+  width_ = other.width_;
  
-  for(int i = 1; i<=other.length_; i++){
+  for(int i = 1; i <= other.length_; i++){
+    //cout << i << endl;
     insertBack(walk(other.head_, i)->data);
   }
-
+  //cout << other.length_ << endl;
 }
 
-Chain::Node * Chain::extractNode(int pos){
-  Node * extracted = walk(head_, pos);
-  head_->next = extracted->next;
-  extracted->next->prev = head_;
-  length_ --;
-  return extracted;
-}
-
-//wont allow insertion at end of a chain (ie if pos>length wont work)
-void Chain::insertNode(Chain::Node * newNode, int pos){
-  Node * prevBound = walk(head_, pos-1);
-  Node * nextBound = walk(head_, pos);
-  newNode->next = nextBound;
-  nextBound->prev = newNode;
-  newNode->prev = prevBound;
-  prevBound->next = newNode;
-  length_ ++;
-}
