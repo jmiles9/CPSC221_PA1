@@ -50,6 +50,7 @@ void Chain::insertBack(const Block & ndata){
   //BP basically just moves chunk of len nodes back in the chain by dist
 void Chain::moveBack(int startPos, int len, int dist){
   //should use walk fxn
+  if(dist == 0) return;
   Node* start = walk(head_, startPos); //first node in the subchain;
   Node* prevBound = start->prev; //the left side of the gap we produce
   Node* end = walk(start, len-1); //last node in subchain
@@ -78,6 +79,7 @@ void Chain::moveBack(int startPos, int len, int dist){
  * nodes of the original list where n is the length.
  */
 void Chain::roll(int k){
+  if(k == length_) return;
   //head should still be first
   //moves k nodes from end of chain to start
   Node * startRoll = walk(head_, k - 1);

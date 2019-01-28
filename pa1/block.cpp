@@ -1,11 +1,5 @@
 #include "block.h"
 
-    Block::Block(){
-        w = 0;
-        h = 0;
-        vector< vector<HSLAPixel> > data;
-    }
-
     /**
      * From im, grabs vertical strip of pixels starting
      * at (column, 0), with width width
@@ -21,8 +15,6 @@
                 data[row][col] = *(im.getPixel(col + column,row)); 
             }
         }
-        w = width;
-        h = im.height();
     }
 
     /**
@@ -32,9 +24,9 @@
         //grab stuff out of block and draw those pixels in im
         int im_height = im.height();
         int im_width = im.width();
-        for(int row = 0; row < h; row++){
+        for(int row = 0; row < height(); row++){
             if(row >= im_height) return;
-            for(int col = 0; col < w; col++){ 
+            for(int col = 0; col < width(); col++){ 
                 if(col+column >= im_width) return;
                 (im.getPixel(col+column,row))->h = (data[row][col]).h;
                 (im.getPixel(col+column,row))->s = (data[row][col]).s;
@@ -61,7 +53,7 @@
      * Returns width of current block
      */
     int Block::width() const {
-        return w;
+        return data[0].size();
     }
 
     /**
@@ -69,5 +61,5 @@
      */
 
     int Block::height() const {
-        return h;
+        return data.size();
     }
