@@ -10,12 +10,11 @@
  * memory does not leak on destruction of a chain.
  */
 Chain::~Chain(){
-  /* your code here */
   //We need to delete each node;
   
   clear();
   delete head_;
-  delete this; //not sure abouot this line either
+  //delete this; //not sure abouot this line either
   //maybe we need to delete more stuff too?? the chain itself??
 
 }
@@ -28,11 +27,11 @@ Chain::~Chain(){
  */
 void Chain::insertBack(const Block & ndata){
   Node* insertNode = new Node(ndata);
-  Node* oldLast = head_->next;
-  head_->next = insertNode;
-  insertNode->prev = head_;
-  insertNode->next = oldLast;
-  oldLast->prev = insertNode;
+  Node* oldLast = head_->prev;
+  head_->prev = insertNode;
+  insertNode->next = head_;
+  insertNode->prev = oldLast;
+  oldLast->next = insertNode;
   length_ ++;
 }
 
@@ -50,7 +49,6 @@ void Chain::insertBack(const Block & ndata){
  */
   //BP basically just moves chunk of len nodes back in the chain by dist
 void Chain::moveBack(int startPos, int len, int dist){
-  /* your code here */
   //should use walk fxn
   Node* start = walk(head_, startPos); //first node in the subchain;
   Node* prevBound = start->prev; //the left side of the gap we produce
@@ -64,7 +62,9 @@ void Chain::moveBack(int startPos, int len, int dist){
 
   //take care of moving the chunk
   start->prev = walk(start, len+dist-1);
-  end->next = walk(end, dist+len-1);
+  end->next = start->prev->next;
+  start->prev->next = start;
+  end->next->prev = end;
 
   //now need to take care of holes we left
   prevBound->next = nextBound;
@@ -78,21 +78,19 @@ void Chain::moveBack(int startPos, int len, int dist){
  * nodes of the original list where n is the length.
  */
 void Chain::roll(int k){
-  /* your code here */
   //head should still be first
   //moves k nodes from end of chain to start
-  Node* startRoll = walk(head_, length_ - k + 1);
-  Node* prevBound = startRoll->prev;
-  Node* endRoll = walk(startRoll, k-1); //we don't need to define nextBound cuz is always head_
-  Node* newEndNode = walk(head_, length_ - k);
+  Node * startRoll = walk(head_, k - 1);
+  Node * newLast = startRoll->prev;
+  Node * endRoll = head_->prev; //we don't need to define nextBound cuz is always head_
+  Node * oldFirst = head_->next;
 
   startRoll->prev = head_;
   head_->next = startRoll;
-  endRoll->next = prevBound;
-  prevBound->prev = endRoll;
-  newEndNode->next = head_;
-  head_->prev = newEndNode;
-
+  endRoll->next = oldFirst;
+  oldFirst->prev = endRoll;
+  newLast->next = head_;
+  head_->prev = newLast;
 }
 
 /**
@@ -102,32 +100,28 @@ void Chain::roll(int k){
  * and pos1 <= pos2.
  * The positions are 1-based.
  */
-void Chain::reverseSub(int pos1, int pos2){
-  Node * start;
-  Node * end;
-  Node * prevBound;
-  Node * nextBound;
+void Chain::reverseSub(int pos1, int pos2){ //this works
+  Node * start = walk(head_, pos1);
+  Node * end = walk(head_, pos2);
+  Node * beforeSwap = walk(head_, pos1-1);
+  Node * afterSwap = walk(head_, pos2+1);
 
-  int swaps = (pos2-pos1)/2; //this will give us floor of value = number of things we have to swap
-  int i=0;
-
-  while(swaps>0){
-    //should do 4 pointer reassignments
-    start = walk(head_, pos1+i);
-    end = walk(head_, pos2-i);
-    prevBound = start->prev;
-    nextBound = end->next;
-    //every loop all we want to do is swap start and end and fix pointer situation
-
-    start->next = nextBound;
-    nextBound->prev = start;
-    end->prev = prevBound;
-    prevBound->next = end;
-
-    swaps--;
-    i++;
+  Node * curr = start->next;
+  Node * temp;
+  while(curr != end){
+    temp = curr->next;
+    curr->next = curr->prev;
+    curr->prev = temp;
+    curr = temp;
   }
-//this needs to be tested a bit lol idk how good it is, makes sense though
+  start->prev = start->next;
+  start->next = afterSwap;
+
+  end->next = end->prev;
+  end->prev = beforeSwap;
+
+  beforeSwap->next = end;
+  afterSwap->prev = start;
 }
 
 /*
