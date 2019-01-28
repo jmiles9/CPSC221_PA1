@@ -41,7 +41,6 @@ private:
    };
 
 public:
-
    /* =============== public given functions ====================*/
    /**
     * Default Chain constructor. GIVEN
