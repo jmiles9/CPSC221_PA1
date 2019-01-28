@@ -58,12 +58,11 @@ if (expected3r == result3r) cout<< "reverseEasyReverse passed" << endl;
 
    Chain e(png1,36);
    Chain g(e); // quick test of copy constructor
-   //Chain f(result1,36);
-   //g.weave(f);
+   Chain f(result1,36);
+   g.weave(f);
    PNG result6 = g.render(64); // deliberately rendering only part
    PNG result8 = g.renderBack(64); // deliberately rendering only back part
    result6.writeToFile("images/out-weaveSameSize.png");
-   cout << "sdfasdf" << endl;
    result8.writeToFile("images/out-weaveRenderBack.png");
 
 PNG expected6; expected6.readFromFile("images/given-weaveSameSize.png");

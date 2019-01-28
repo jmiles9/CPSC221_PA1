@@ -140,8 +140,6 @@ void Chain::reverseSub(int pos1, int pos2){ //this works
 */
 void Chain::weave(Chain & other) { // leaves other empty.
   //checking block width
-  cout << "width: "; cout << width_ << endl;
-  cout << "other.width: "; cout << other.width_ << endl;
   if(width_ != other.width_ || height_ != other.height_){
     cout << "Block sizes differ." << endl;
     return;
@@ -155,6 +153,8 @@ void Chain::weave(Chain & other) { // leaves other empty.
     head_->next = other.head_->next;
     other.head_->next = other.head_;
     other.head_->prev = other.head_;
+    length_ = other.length_;
+    other.length_ = 0;
     return;
   }
 
@@ -191,6 +191,9 @@ void Chain::weave(Chain & other) { // leaves other empty.
 
   other.head_->next = other.head_;
   other.head_->prev = other.head_;
+
+  length_ += other.length_;
+  other.length_ = 0;
 }
 
 
